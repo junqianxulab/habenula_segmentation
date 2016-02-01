@@ -18,6 +18,42 @@ Semi-automated Human Habenula Segmentation Program
 
 ---
 ## How to Run
-* After reading all functions in segment_hb.py, call the segment_hb() function.
+```
+import segment
+segment.segment_hb(
+        'T1w_filename',
+        'T2w_filename',
+        'myelin_filename',
+        'hb_center_filename',
+        'output_filename',
+        min_volume = 80,
+        t1min = None,
+        t1max = None,
+        t2min = 10,
+        t2max = None,
+        sig_factor = 0.9,
+        growth = 5,
+        verbose = False
+        )
+```
+
+### input:
+*  t1, t2, myelin: T1w, T2w, Myelin Nifti1 images
+*  hb_center: mask Nifti1 file indicating Hb centers (1: right Hb, 2: left Hb)
+
+### output:
+*  out_filename: output (segmentation) Nifti1 image file name
+
+### parameters:
+*  min_volume: minimum ROI volume (mm^3) for each Hb. Default 80.
+*  t1min, t1max, t2min, t2max: first thresold values for T1w, T2w.
+*  sig_factor: Factor of sigma for myelin threshold for Hb segmentation. Default 0.9. The higher factor, the smaller Hb.
+*  growth: Number of iteration for region growth method. 0 for disable it. Default 5.
+*  verbose: If True, Display details. Default False.
+
+### return:
+*  [color1 Hb volume, color2 Hb volume], [color1 Hb partial volume, color2 Hb partial volume], [list(left Hb index), list(right Hb index)]
+
+Reference: http://www.ncbi.nlm.nih.gov/pubmed/26826517
 
 THIS PAGE IS UNDER CONSTRUCTION
