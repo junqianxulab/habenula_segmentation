@@ -33,7 +33,12 @@ segment.segment_hb(
         t2max = None,
         sig_factor = 0.9,
         growth = 5,
-        verbose = False
+        verbose = False,
+        return_volume=True,
+        return_step_volume=False,
+        return_center_of_mass=False,
+        return_hb_index=False,
+        return_hb_neighbor_index=False
         )
 ```
 
