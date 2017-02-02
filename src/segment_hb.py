@@ -4,6 +4,8 @@
 # Modified: Aug/07/2015
 ###########################################################################
 
+# dependency: nibabel, numpy, scipy
+
 import errno
 import os
 import numpy as np
@@ -184,12 +186,36 @@ def read_nifti1_files(t1, t2, mye):
         print 'resolution of Myelin does not match'
         os.exit(-1)
 
-    return nif_1.get_data(), nif_2.get_data(), nif_3.get_data(), affine, header
+    dat_1 = nif_1.get_data()
+    dat_2 = nif_2.get_data()
+    dat_3 = nif_3.get_data()
+    # swap if affine[0][0] > 0
+    if affine[0][0] > 0:
+        dat_1_lr = np.empty(dat_1.shape, dtype=dat_1.dtype)
+        dat_2_lr = np.empty(dat_1.shape, dtype=dat_2.dtype)
+        dat_3_lr = np.empty(dat_1.shape, dtype=dat_3.dtype)
+        for z in range(dat_1.shape[2]):
+            dat_1_lr[:,:,z] = np.flipud(dat_1[:,:,z])
+            dat_2_lr[:,:,z] = np.flipud(dat_2[:,:,z])
+            dat_3_lr[:,:,z] = np.flipud(dat_3[:,:,z])
+    else:
+        dat_1_lr = dat_1
+        dat_2_lr = dat_2
+        dat_3_lr = dat_3
+
+    return dat_1_lr, dat_2_lr, dat_3_lr, affine, header
 
 def write_nifti1_file(out_dat, out_filename, affine, header):
     import nibabel as nib
     header.set_data_dtype(out_dat.dtype)
-    out_img = nib.Nifti1Image(out_dat, affine, header)
+
+    if affine[0][0] > 0:
+        out_dat_lr = np.empty(out_dat_lr.shape, dtype=out_dat_lr.dtype)
+        for z in range(out_dat.shape[2]):
+            out_dat_lr[:,:,z] = np.flipud(out_dat[:,:,z])
+    else:
+        out_dat_lr = out_dat
+    out_img = nib.Nifti1Image(out_dat_lr, affine, header)
     nib.save(out_img, out_filename)
 
 def set_min_max(avg1, sig1, avg2, sig2, pt1min, pt1max, pt2min, pt2max):
@@ -870,6 +896,7 @@ def apply_inferior_limit(seg_color, hb, data_t1, data_t2, avg1, sig1, avg2, sig2
         #print limits
         if True:
             if limits:
+#FIXME
                 hb_cut += [ (i,j,k) for (i,j,k) in hb_pa if k >= np.mean(limits) ]
                 #hb_cut += [ (i,j,k) for (i,j,k) in hb_pa if k >= max(limits) ]
             else:
@@ -893,6 +920,57 @@ def center_of_mass(inds):
     center_y = int(np.ceil(center_y))
     center_z = int(np.ceil(center_z))
     return center_x, center_y, center_z
+
+
+def weighted_center_of_mass(inds, dat):
+    center_x = 0.0
+    center_y = 0.0
+    center_z = 0.0
+    N = 0.0
+    for (i,j,k) in inds:
+        w = dat[i,j,k]
+        center_x += (i*w)
+        center_y += (j*w)
+        center_z += (k*w)
+        N += w
+    center_x /= N
+    center_y /= N
+    center_z /= N
+    center_x = int(np.ceil(center_x))
+    center_y = int(np.ceil(center_y))
+    center_z = int(np.ceil(center_z))
+
+    #return center_x, center_y, center_z
+
+    def dist(ind):
+        return abs(ind[0]-center_x) + abs(ind[1]-center_y) + abs(ind[2]-center_z)
+
+    min_ind = 0
+    min_dist = dist(inds[0])
+    for i in range(1, len(inds)):
+        curr_dist = dist(inds[i])
+        if curr_dist < min_dist:
+            min_ind = i
+            min_dist = curr_dist
+        elif curr_dist == min_dist:
+            if dat[inds[min_ind]] < dat[inds[i]]:
+                min_ind = i
+                min_dist = curr_dist
+
+    return inds[min_ind]
+
+
+def find_max(inds, dat):
+    max_ind = 0
+    max_val = dat[inds[0]]
+    for i in range(1, len(inds)):
+        curr_val = dat[inds[i]]
+        if max_val < curr_val:
+            max_ind = i
+            max_val = curr_val
+
+    return inds[max_ind]
+
 
 class ROI:
     def __init__(self, unit=(0.7,0.7,0.7), dx=3, dy=4, dz=3, template=None, get_nbd=None):
@@ -1005,8 +1083,10 @@ def segmentation_threshold(opt, roi_voxels_r, roi_voxels_l):
     # Threshold
     if opt.verbose: print '  threshold (input or default): t1 in (%s, %s), t2 in (%s, %s)' % (t1min, t1max, t2min, t2max)
     roi_voxels_thr = [ ijk for ijk in roi_voxels if t1min<opt.data_t1[ijk]<t1max and t2min<opt.data_t2[ijk]<t2max ]
+
     # remove disconnected ROI
     roi_voxels_thr = dilate_intensity(opt.seed_voxels[0]+opt.seed_voxels[1], roi_voxels_thr, opt.data_t1, opt.get_nbd, 0)
+
     #dat1_roi = [ opt.data_t1[ijk] for ijk in roi_voxels_thr ]
     #dat2_roi = [ opt.data_t2[ijk] for ijk in roi_voxels_thr ]
     dat3_roi = [ opt.data_my[ijk] for ijk in roi_voxels_thr ]
@@ -1063,8 +1143,8 @@ def segmentation_region_growth(opt, roi_voxels_thr_lr_myel, roi_voxels_thr_lr_t1
     pivot_up_limit = 0
     roi_voxels_region_growth_lr = []
     #FIXME
-    data = opt.data_t1
-    #data = opt.data_my
+    #data = opt.data_t1
+    data = opt.data_my
     for seg_color in [1,2]:
         hb = roi_voxels_thr_lr_myel[seg_color-1][:]
         done = roi_voxels_thr_lr_t1t2[seg_color-1][:]
@@ -1110,12 +1190,20 @@ def set_template_roi(opt, roi_voxels_thr_lr, threshold_values):
     roi_voxels_thr_myel = []
     for seg_color in [1,2]:
         #
-        roi_template = roi.get_roi_lr(center_of_mass(roi_voxels_thr_lr[seg_color-1]), seg_color)
+        # FIXME
+        #opt.seed_voxels[seg_color-1] = [weighted_center_of_mass(roi_voxels_thr_lr[seg_color-1], opt.data_my)]
+
+        #roi_template = roi.get_roi_lr(center_of_mass(roi_voxels_thr_lr[seg_color-1]), seg_color)
+        roi_template = roi.get_roi_lr(weighted_center_of_mass(roi_voxels_thr_lr[seg_color-1], opt.data_my), seg_color)
         #com = center_of_mass(roi_voxels_thr_lr[seg_color-1])
         #roi_template = dilate_volume([(int(com[0]), int(com[1]), int(com[2]))], opt.get_nbd, opt.min_volume, opt.unit)
         #
         roi_template = [ ijk for ijk in roi_template
                 if threshold_values[0]<opt.data_t1[ijk]<threshold_values[1] and threshold_values[2]<opt.data_t2[ijk]<threshold_values[3] ]
+
+        # FIXME
+        opt.seed_voxels[seg_color-1] = [find_max(roi_template, opt.data_my)]
+
         roi_voxels_thr_t1t2.append(dilate_intensity(opt.seed_voxels[seg_color-1], roi_template, opt.data_my, opt.get_nbd, 0))
         roi_voxels_thr_myel.append(dilate_intensity(opt.seed_voxels[seg_color-1], roi_voxels_thr_t1t2[seg_color-1], opt.data_my, opt.get_nbd, threshold_values[4], conn=26))
     return roi_voxels_thr_myel, roi_voxels_thr_t1t2
@@ -1156,6 +1244,10 @@ def segmentation(opt, return_volume=True, return_step_volume=False, return_cente
     roi_voxels_l = dilate_volume(opt.seed_voxels[1], opt.get_nbd, opt.min_volume, opt.unit)
     roi_voxels_bi = list(set(roi_voxels_r + roi_voxels_l))
     if opt.verbose: print '  dilate seeds: %s voxels' % len(roi_voxels_bi)
+
+    # FIXME
+    opt.seed_voxels[0] = [weighted_center_of_mass(roi_voxels_r, opt.data_my)]
+    opt.seed_voxels[1] = [weighted_center_of_mass(roi_voxels_l, opt.data_my)]
 
     # segmentation thresholding
     roi_voxels_thr_lr_myel, roi_voxels_thr_lr_t1t2, threshold_values, gaussians, histograms_thr = segmentation_threshold(opt, roi_voxels_r, roi_voxels_l)
