@@ -78,7 +78,7 @@ if ag.center is None and ag.warp_to_acpc is None:
     sys.exit(-1)
 
 if ag.myelin is None:
-    ag.myelin = filename_wo_ext(ag.t1w) + '_div_t2w.nii.gz'
+    ag.myelin = filename_wo_ext(os.path.basename(ag.t1w)) + '_div_t2w.nii.gz'
     cmd = 'fslmaths %s -div %s %s' % (ag.t1w, ag.t2w, ag.myelin)
     run_command(cmd)
 
