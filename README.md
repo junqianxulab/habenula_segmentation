@@ -1,6 +1,6 @@
 # Habenula Segmentation
 ---
-Semi-automated Human Habenula Segmentation Program
+Automated Human Habenula Segmentation Program
 
 ---
 ## Requirements
@@ -90,8 +90,10 @@ segment.segment_hb(
 #### return:
 *  [color1 Hb volume, color2 Hb volume], [color1 Hb partial volume, color2 Hb partial volume], [list(left Hb index), list(right Hb index)]
 
+# Habenula Template
+We release habenula templates: `habenula_template` directory.
+* `habenula_template_HCP_50_native_[left/right].nii.gz` : habenula template in the MNI space generated from HCP 50 subjects' habenula segmentation in the native space.
 
 ---
 Reference: http://www.ncbi.nlm.nih.gov/pubmed/26826517
 
-THIS PAGE IS UNDER CONSTRUCTION
