@@ -6,6 +6,7 @@ Semi-automated Human Habenula Segmentation Program
 ## Requirements
 * Python: version 2.7
 * Python libraries: numpy, scipy, nibabel
+* FSL
 
 ---
 ## Input Files
