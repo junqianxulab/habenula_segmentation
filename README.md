@@ -95,5 +95,9 @@ We release habenula templates: `habenula_template` directory.
 * `habenula_template_HCP_50_native_[left/right].nii.gz` : habenula template in the MNI space generated from HCP 50 subjects' habenula segmentation in the native space.
 
 ---
-Reference: http://www.ncbi.nlm.nih.gov/pubmed/26826517
+#### Reference:
+
+[1] Kim et al, Human habenula segmentation using myelin content. Neuroimage, 2016, 130 : 145-156 http://www.ncbi.nlm.nih.gov/pubmed/26826517
+
+[2] Kim et al, Reproducibility of myelin content‐based human habenula segmentation at 3 Tesla. Human Brain Mapping, 2018 https://doi.org/10.1002/hbm.24060
 
