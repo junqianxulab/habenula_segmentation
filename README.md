@@ -99,5 +99,5 @@ We release habenula templates: `habenula_template` directory.
 
 [1] Kim et al, Human habenula segmentation using myelin content. Neuroimage, 2016, 130 : 145-156 http://www.ncbi.nlm.nih.gov/pubmed/26826517
 
-[2] Kim et al, Reproducibility of myelin content‐based human habenula segmentation at 3 Tesla. Human Brain Mapping, 2018 https://doi.org/10.1002/hbm.24060
+[2] Kim et al, Reproducibility of myelin content‐based human habenula segmentation at 3 Tesla. Human Brain Mapping, 2018, 39 : 3058-3071 https://doi.org/10.1002/hbm.24060
 
