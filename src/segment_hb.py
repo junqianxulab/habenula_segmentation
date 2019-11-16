@@ -210,7 +210,7 @@ def write_nifti1_file(out_dat, out_filename, affine, header):
     header.set_data_dtype(out_dat.dtype)
 
     if affine[0][0] > 0:
-        out_dat_lr = np.empty(out_dat_lr.shape, dtype=out_dat_lr.dtype)
+        out_dat_lr = np.empty(out_dat.shape, dtype=out_dat.dtype)
         for z in range(out_dat.shape[2]):
             out_dat_lr[:,:,z] = np.flipud(out_dat[:,:,z])
     else:
