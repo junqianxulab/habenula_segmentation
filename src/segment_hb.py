@@ -1049,7 +1049,16 @@ class ROI:
 def read_seeds_from_nifti(filename, seed_values=(1,2), verbose=False):
     import nibabel as nib
     nif_s = nib.load(filename)
-    dat = nif_s.get_data()
+    dat_lr = nif_s.get_data()
+
+    # swap if affine[0][0] > 0
+    if nif_s.affine[0][0] > 0:
+        dat = np.empty(dat_lr.shape, dtype=dat_lr.dtype)
+        for z in range(dat_lr.shape[2]):
+            dat[:,:,z] = np.flipud(dat_lr[:,:,z])
+    else:
+        dat = dat_lr
+
     seed_voxels = []
     for seed_color in seed_values:
         seed = (dat == seed_color).nonzero()
