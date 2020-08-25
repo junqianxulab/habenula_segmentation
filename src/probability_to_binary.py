@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+#
+# Convert probability segmentation to a binary segmentation after applying threshold
+#
+# Usage:
+#      probability_to_binary.py --in input_probability_segmentation.nii.gz \
+#                               --out output_basename \
+#                               --thr threshold_to_be_applied_to_probability \
+#                               --each_hb True|False
+#
+# If each_hb is True, there will be separate left and rigth habenula segmentation.
+# If           False, right habenula will be assigned as 1 and left as 2. Default is True.
+#
+# e.g. probability_to_binary.py --in hb_segmentation_probability.nii.gz --out hb_each --thr 0.1
+#
 
 import nibabel as nib
 import numpy as np
